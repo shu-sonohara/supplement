@@ -1,3 +1,50 @@
+/**
+ * Webhook エントリーポイント（HTTP POST）
+ * GitHub ActionsなどからHTTP POSTリクエストで呼び出す。
+ * デプロイURL: https://script.google.com/macros/s/<SCRIPT_ID>/exec
+ *
+ * リクエストボディ（JSON）:
+ *   { "action": "addNewSupplements" }
+ *
+ * レスポンス（JSON）:
+ *   成功: { "status": "ok", "message": "..." }
+ *   エラー: { "status": "error", "message": "..." }
+ */
+function doPost(e) {
+  try {
+    const body = e && e.postData && e.postData.contents
+      ? JSON.parse(e.postData.contents)
+      : {};
+    const action = body.action || '';
+
+    if (action === 'addNewSupplements') {
+      addNewSupplements();
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok', message: 'addNewSupplements 完了' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: '不明なaction: ' + action }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Webhook エントリーポイント（HTTP GET）
+ * ヘルスチェック用。
+ */
+function doGet(e) {
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: 'ok', message: 'Webhook is alive' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function addNewSupplements() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 

@@ -1,0 +1,29 @@
+name: Call GAS Webhook
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: '実行するアクション'
+        required: true
+        default: 'addNewSupplements'
+        type: choice
+        options:
+          - addNewSupplements
+
+jobs:
+  call-webhook:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GAS Webhookを呼び出す
+        run: |
+          RESPONSE=$(curl -s -X POST "${{ secrets.GAS_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d '{"action": "${{ github.event.inputs.action }}"}')
+          echo "Response: $RESPONSE"
+          STATUS=$(echo "$RESPONSE" | jq -r '.status')
+          if [ "$STATUS" != "ok" ]; then
+            echo "Error: $(echo $RESPONSE | jq -r '.message')"
+            exit 1
+          fi
+          echo "Success: $(echo $RESPONSE | jq -r '.message')"
